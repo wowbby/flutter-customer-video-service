@@ -1,0 +1,22 @@
+name: customer_video_service
+description: App-scoped video service sessions, floating windows and H5 bridge for Android, iOS and HarmonyOS.
+version: 0.3.0
+publish_to: none
+environment:
+  sdk: ^3.6.2
+  flutter: '>=3.27.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  customer_rtc:
+    path: ../customer_rtc
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 5.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/service_avatar.png
+    - assets/call_wait_background.jpg
+    - assets/call_icons/

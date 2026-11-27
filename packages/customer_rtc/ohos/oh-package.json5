@@ -1,0 +1,11 @@
+{
+  "name": "customer_rtc",
+  "version": "0.3.0",
+  "description": "Native Agora RTC and bundled WebView adapter.",
+  "main": "index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@shengwang/rtc-full": "file:./libs/agora_rtc_sdk-4.4.2.har"
+  }
+}

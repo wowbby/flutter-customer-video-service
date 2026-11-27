@@ -1,0 +1,10 @@
+{
+  "module": {
+    "name": "customer_rtc",
+    "type": "har",
+    "deviceTypes": [
+      "default",
+      "tablet"
+    ]
+  }
+}

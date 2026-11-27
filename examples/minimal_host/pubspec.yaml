@@ -1,0 +1,17 @@
+name: minimal_video_service_host
+description: Minimal host depending only on the video service component.
+version: 0.1.0+1
+publish_to: none
+environment:
+  sdk: ^3.6.2
+dependencies:
+  flutter:
+    sdk: flutter
+  customer_video_service:
+    path: ../../packages/customer_video_service
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 5.0.0
+flutter:
+  uses-material-design: true
