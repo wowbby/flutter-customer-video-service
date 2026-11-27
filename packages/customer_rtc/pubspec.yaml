@@ -1,7 +1,7 @@
 name: customer_rtc
-description: Native Agora RTC and bundled WebView adapters for Android, iOS and HarmonyOS.
+description: Native Agora RTC, video surfaces and call overlays for Android, iOS and HarmonyOS.
 publish_to: 'none'
-version: 0.3.0
+version: 0.4.0
 
 environment:
   sdk: ^3.6.2

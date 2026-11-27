@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Move the bundled WebView, H5 protocol and document bindings to the Demo. Hosts connect their existing business actions directly to VideoServiceController and read typed session state.
+
 ## 0.3.0
 
 * Add mixed-host lifecycle and window handoff, trusted per-document request context, media readiness, camera and video options, scoped control recovery and typed diagnostics.

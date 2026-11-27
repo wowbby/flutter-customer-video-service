@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:customer_video_service/customer_video_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +11,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late FakeTransport native;
   late VideoServiceController controller;
-  late CustomerH5Bridge bridge;
   var credentialsRequested = 0;
 
   void configure({bool preview = false}) {
@@ -31,11 +29,9 @@ void main() {
         return settings;
       },
     );
-    bridge = CustomerH5Bridge(controller: controller);
   }
 
   tearDown(() async {
-    bridge.dispose();
     native.handler = null;
     await controller.shutdown();
     controller.dispose();
@@ -54,7 +50,6 @@ void main() {
     native = phone;
     controller = VideoServiceController(
         transport: phone, lifecycleSource: CallLifecycleSource.nativeHost);
-    bridge = CustomerH5Bridge(controller: controller);
     final actions = <CallUserAction>[];
     controller.userActions.listen(actions.add);
     final first = await controller.beginWaiting();
@@ -134,8 +129,7 @@ void main() {
               .inMilliseconds,
           lessThan(20));
       expect(controller.state.acceptedAt!.isUtc, isTrue);
-      expect(controller.state.toBridgeMap()['acceptedAt'],
-          origin.toUtc().toIso8601String());
+      expect(controller.state.acceptedAt, origin.toUtc());
       final full = latestPresentation();
       expect(full['connectedDurationMs'], full['miniElapsedMs']);
       expect(full['acceptedAtMs'], origin.millisecondsSinceEpoch);
@@ -229,7 +223,6 @@ void main() {
   test('a staged-only host needs no credential provider', () async {
     native = FakeTransport();
     controller = VideoServiceController(transport: native);
-    bridge = CustomerH5Bridge(controller: controller);
     await expectLater(
         controller.startCall(),
         throwsA(isA<CallException>().having(
@@ -240,16 +233,11 @@ void main() {
     expect(controller.state.media.controlsReady, isTrue);
   });
 
-  testWidgets(
-      'waiting survives two minutes and a trusted H5 reload without starting RTC',
+  testWidgets('waiting survives two minutes without starting RTC',
       (tester) async {
     configure(preview: true);
-    final sent = <Map<String, Object?>>[];
     const request = CallRequest(localAvatarPath: '/cache/profile.jpg');
-    final page = bridge.attach(send: sent.add, requestForCall: () => request);
-    await page.ready();
-    await page.receive(_command('wait', 'beginWaiting'));
-    final id = controller.state.sessionId!;
+    final id = await controller.beginWaiting(request: request);
     expect(controller.state.queue!.status, CallQueueStatus.unknown);
     controller.updateQueue(sessionId: id, peopleAhead: 2);
     controller.minimize();
@@ -262,16 +250,9 @@ void main() {
     expect(native.calls.where((c) => c.$1 == 'join'), isEmpty);
     native.emit('remoteJoined', id, {'uid': 9});
     expect(controller.state.media.remoteUid, isNull);
-    page.dispose();
-    sent.clear();
-    final reloaded = bridge.attach(send: sent.add);
-    await reloaded.ready();
-    await reloaded.receive(_command('read', 'getState'));
-    final state = sent.last['result'] as Map;
-    expect(state['mode'], 'mini');
-    expect(state['queue'],
-        {'status': 'queued', 'peopleAhead': 2, 'estimatedWaitMs': 600000});
-    expect(jsonEncode(sent), isNot(contains('/cache/profile.jpg')));
+    expect(controller.state.windowMode, CallWindowMode.mini);
+    expect(controller.state.queue!.peopleAhead, 2);
+    expect(controller.state.queue!.estimatedWait, const Duration(minutes: 10));
     controller.updateQueue(sessionId: id, peopleAhead: 0);
     expect(controller.state.queue!.status, CallQueueStatus.none);
     expect(controller.queueLabel, isNull);
@@ -280,8 +261,6 @@ void main() {
         peopleAhead: 2,
         estimatedWait: const Duration(minutes: 3));
     expect(controller.state.queue!.estimatedWait, const Duration(minutes: 3));
-    await reloaded.receive(_command('forbidden', 'admit'));
-    expect(sent.last['error'], 'unknownAction');
     await controller.admit(sessionId: id, credentials: settings);
     native.emit('remoteJoined', id, {'uid': 9});
     expect(controller.showsCallSurface, isFalse);
@@ -292,7 +271,6 @@ void main() {
     expect(controller.showsCallSurface, isTrue);
     expect(controller.state.queue, isNull);
     await controller.hangup();
-    reloaded.dispose();
   });
 
   test(
@@ -338,7 +316,7 @@ void main() {
   });
 
   test(
-      'H5 cancels immediately; duplicate native action, release retry and host end do not send user intent twice',
+      'user cancels immediately; duplicate native action, release retry and host end do not send user intent twice',
       () async {
     configure();
     final actions = <CallUserAction>[], summaries = <CallSummary>[];
@@ -349,10 +327,8 @@ void main() {
     final release = Completer<Object?>();
     native.handler =
         (method, _) async => method == 'leave' ? release.future : null;
-    final page = bridge.attach(send: (_) {});
-    await page.ready();
     final ending =
-        page.receive(_command('cancel', 'hangup', {'sessionId': id}));
+        expectLater(controller.hangup(), throwsA(isA<CallException>()));
     expect(actions.single.kind, CallUserActionKind.cancel);
     expect(controller.state.queue, isNull);
     expect(actions.single.sessionId, id);
@@ -373,7 +349,6 @@ void main() {
     final third = await controller.beginWaiting();
     await controller.endCall(sessionId: third, reason: CallEndReason.user);
     expect(actions, hasLength(2));
-    page.dispose();
   });
 
   test(
@@ -413,12 +388,3 @@ void main() {
     expect(controller.localAvatarPath, isNull);
   });
 }
-
-String _command(String requestId, String action,
-        [Map<String, Object?> params = const {}]) =>
-    jsonEncode({
-      'version': 1,
-      'requestId': requestId,
-      'action': action,
-      'params': params
-    });

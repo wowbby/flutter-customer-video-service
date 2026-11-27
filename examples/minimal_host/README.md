@@ -1,6 +1,6 @@
 # 最小宿主
 
-这个独立 Flutter 示例仅依赖 `customer_video_service` 的公共入口。H5 可发起无媒体窗口，缩小后进入 Flutter 业务页，再返回或恢复全屏。示例使用单个 FlutterEngine，通过 Flutter 生命周期管理会话。
+这个独立 Flutter 示例仅依赖 `customer_video_service` 的公共入口。点击「开始等待客服」直接调用 `beginWaiting()`。此示例可在没有 RTC 凭据时打开等待窗口，缩小后进入另一业务页，返回、恢复或取消。示例使用单个 FlutterEngine，通过 Flutter 生命周期管理会话。
 
 ## 从源码导出组件
 
@@ -41,4 +41,4 @@ flutter analyze --no-pub
 flutter test --no-pub
 ```
 
-Widget 测试覆盖进入业务页后小窗延续及结束清理。要在完整 Demo 的平台壳运行这个入口，从 Demo 根目录执行 `./tool/flutterw run -d <设备ID> --target examples/minimal_host/lib/main.dart`。启用真实通话时，宿主实现 `credentialsProvider` 与 `tokenProvider`，并由业务信令通过 `updateBusinessState` 确认坐席接听。公共 API、H5 协议及迁移步骤见 [组件接入指南](../../packages/customer_video_service/README.md)。
+Widget 测试覆盖进入业务页后小窗延续及结束清理。要在完整 Demo 的平台壳运行这个入口，从 Demo 根目录执行 `./tool/flutterw run -d <设备ID> --target examples/minimal_host/lib/main.dart`。业务准入时用服务器返回的凭据调用 `admit()`，收到坐席接听信令时调用 `updateBusinessState()`，Token 续期使用 `tokenProvider`。公共 API、现有 JSBridge 接线及迁移步骤见 [组件接入指南](../../packages/customer_video_service/README.md)。

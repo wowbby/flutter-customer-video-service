@@ -38,5 +38,3 @@ nativeNavigationController.dismiss(animated: true)
 原生侧在入房参数中关闭全部自动订阅；有 expectedPeerUid 时只订阅该 UID，无指定值时订阅首个选中成员。失败时回退订阅、报告会话错误并释放。SD 目标为 640×360、HD 为 1280×720，帧率均为 15 fps，实际传输与渲染受 SDK、网络及设备能力影响。画布绑定失败会上报角色与 SDK 数字错误码，宿主可调用控制器的重绑命令。
 
 Demo 的原生入口和真实 Scene 回调见 完整 Demo 中的 `ios/Runner/AppDelegate.swift`。由 Flutter 发起探针或通话并缩小后，打开 Demo 原生页、进入原生 H5、返回，观察窗口状态及响应；真机媒体验收另核对声音、首帧、切页连续性和最终资源释放。
-
-随组件提供的本地 WKWebView 通过应用内 URL 加载传入的 HTML，保留原文档模式。内容安全策略随文档响应头生效，允许文档内联脚本、样式和 data 图片。宿主通过 CustomerBridge 与组件通信。

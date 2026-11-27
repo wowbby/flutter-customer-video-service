@@ -92,7 +92,6 @@ class CustomerRtcPlugin() : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
     private var boundRemote: View? = null
     private var boundUid: Int? = null
     private val videos = linkedSetOf<NativeVideoView>()
-    private val webs = mutableMapOf<Int, NativeWebView>()
     private data class Session(val id: String, val ticket: Any, val appId: String,
         val channel: String, var token: String, val uid: Int, var result: MethodChannel.Result?,
         val peer: PeerSubscription, val facing: String?, val quality: String?, val hostEpoch: Long, var requestCode: Int = 0, var ownsProcessEngine: Boolean = false) {
@@ -115,7 +114,6 @@ class CustomerRtcPlugin() : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
         channel.setMethodCallHandler(this)
         events = EventChannel(binding.binaryMessenger, "customer_rtc/events")
         events.setStreamHandler(this)
-        binding.platformViewRegistry.registerViewFactory("customer_rtc/web", NativeWebFactory(this))
         binding.platformViewRegistry.registerViewFactory("customer_rtc/video", NativeVideoFactory(this))
     }
     override fun onListen(arguments: Any?, eventSink: EventChannel.EventSink) {
@@ -181,11 +179,6 @@ class CustomerRtcPlugin() : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
                 "rebindVideo" -> {
                     current(call)
                     bindVideos(force = true)?.let { throw it }
-                    result.success(null)
-                }
-                "webReply" -> {
-                    val id = requireNotNull(call.argument<Number>("viewId")).toInt()
-                    webs[id]?.reply(string(call, "json"))
                     result.success(null)
                 }
                 "setMuted", "setCameraEnabled", "switchCamera", "setSpeaker", "setVideoQuality", "renewToken" -> {
@@ -870,8 +863,6 @@ class CustomerRtcPlugin() : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
         if (uid == null) { boundUid = null; boundRemote = null }
         return bindings.failure
     }
-    internal fun addWeb(id: Int, view: NativeWebView) { webs[id] = view }
-    internal fun removeWeb(id: Int) { webs.remove(id) }
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityBinding = binding
         if (binding.activity.hasWindowFocus()) audioVisibility.onActivityStarted(binding.activity)
@@ -913,7 +904,6 @@ class CustomerRtcPlugin() : FlutterPlugin, MethodChannel.MethodCallHandler, Acti
         session?.let { leave(it.id, null) }
         hostRoot?.let { detachNativeHost(it) }
         videos.clear()
-        webs.values.toList().forEach { it.dispose() }
         channel.setMethodCallHandler(null)
         events.setStreamHandler(null)
         sink = null

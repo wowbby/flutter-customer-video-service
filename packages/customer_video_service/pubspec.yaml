@@ -1,6 +1,6 @@
 name: customer_video_service
-description: App-scoped video service sessions, floating windows and H5 bridge for Android, iOS and HarmonyOS.
-version: 0.3.0
+description: App-scoped video service sessions and floating call windows for Android, iOS and HarmonyOS.
+version: 0.4.0
 publish_to: none
 environment:
   sdk: ^3.6.2

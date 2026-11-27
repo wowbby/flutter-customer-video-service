@@ -45,7 +45,8 @@ void main() {
     expect(identical(requested, renewed), isTrue);
     expect(requested!.request.businessId, 'private-order');
     expect(
-        jsonEncode(controller.state.toBridgeMap()), isNot(contains('private')));
+        '${controller.state.error} ${controller.state.diagnostic} ${controller.state.lastSummary?.error}',
+        isNot(contains('private')));
     expect(jsonEncode(native.calls.map((e) => e.$2).toList()),
         isNot(contains('private-order')));
     await controller.hangup();
@@ -181,7 +182,8 @@ void main() {
     expect(controller.state.hasWindow, isTrue);
     expect(controller.state.media.muted, isFalse);
     expect(
-        jsonEncode(controller.state.toBridgeMap()), isNot(contains('private')));
+        '${controller.state.error} ${controller.state.diagnostic} ${controller.state.lastSummary?.error}',
+        isNot(contains('private')));
     native.handler = null;
     await controller.hangup();
   });
@@ -285,7 +287,8 @@ void main() {
     expect(error.operation, CallOperation.event);
     expect(error.recovery, CallRecovery.retryCall);
     expect(
-        jsonEncode(controller.state.toBridgeMap()), isNot(contains('private')));
+        '${controller.state.error} ${controller.state.diagnostic} ${controller.state.lastSummary?.error}',
+        isNot(contains('private')));
   });
 
   test('token refresh failure reports the same structured recovery as state',

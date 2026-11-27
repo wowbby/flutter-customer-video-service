@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'customer_rtc'
-  s.version          = '0.3.0'
+  s.version          = '0.4.0'
   s.summary          = 'Native Agora RTC and video views for the customer video service.'
   s.description      = <<-DESC
 Native Agora RTC and video views for the customer video service.

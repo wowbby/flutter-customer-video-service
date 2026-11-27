@@ -70,7 +70,7 @@ private appLifecycle: ApplicationStateChangeCallback = {
 
 原生窗可拖动、小窗吸边、切换全屏、挂断，显示本端和对端弱网。全屏时可静音、开关/翻转摄像头、切换扬声器、标清和高清。画布绑定异常可重绑。等待凭据或原生命令进行中时控件根据可用状态禁用。需重启时显示相应指引。原生音视频初始关闭自动订阅，只订阅首个符合 expectedPeerUid 条件的成员。业务凭据明确坐席身份时应提供该 UID。所选成员离开时分别取消其音视频订阅并解除旧画布绑定。部分订阅失败会立即结束本次通话。主相机、本地录音与选中对端视频的轨道状态来自 SDK。4.4.2 HAR 没有暴露路由变化委托，插件在 RTC 统计回调中查询系统通信音频输出设备；无法区分时回传 other。
 
-在引用本目录的宿主或 CI 中执行 `./tool/setup_sdk.sh`（从本目录运行）。脚本安装并校验固定版本 4.4.2 HAR。然后使用宿主现有签名流程构建。包版本 0.3.0。
+在引用本目录的宿主或 CI 中执行 `./tool/setup_sdk.sh`（从本目录运行）。脚本安装并校验固定版本 4.4.2 HAR。然后使用宿主现有签名流程构建。包版本 0.4.0。
 
 验证命令为 `node tests/cleanup_policy_test.cjs` 和 `node tests/plugin_contract_test.cjs`，前者校验异步销毁，后者运行实际插件控制流程并替换平台与声网边界。混合宿主 Demo 的 `rtc_demo/mixed_host` 频道提供 `openNativePage`，可从 Flutter 切换到独立 ArkUI 页与其内的本地 WebView，再返回 Flutter。实际画面连续性、音频路由以及系统相机释放需在已签名设备上验证。
 

@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Move the web platform views, message channels and NativeWebClient to the Demo. The plugin provides RTC media, video surfaces and native call overlays.
+
 ## 0.3.0
 
 * Add mixed native presentation, application lifecycle events, single-peer subscription, media configuration, observed tracks/routes, weak network and recoverable per-role canvas binding.

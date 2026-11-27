@@ -5,7 +5,7 @@ typedef CredentialsProvider = Future<CallCredentials> Function(
 typedef TokenProvider = Future<String> Function(
     CallContext context, CallIdentity identity);
 
-/// Host metadata for a call. Never forwarded to native SDKs or the H5 bridge.
+/// Host metadata for a call. Business identifiers are not forwarded to the native RTC SDK.
 @immutable
 class CallRequest {
   const CallRequest(
@@ -222,12 +222,6 @@ class CallQueueState {
     ];
     return '排队中，${parts.join('，')}，请耐心等待…';
   }
-
-  Map<String, Object?> toBridgeMap() => {
-        'status': status.name,
-        'peopleAhead': peopleAhead,
-        'estimatedWaitMs': estimatedWait?.inMilliseconds
-      };
 }
 
 enum CallUserActionKind { cancel, hangup }
@@ -335,18 +329,6 @@ class CallSummary {
   final CallEndReason reason;
   final ReleaseStatus releaseStatus;
   final CallException? error;
-
-  /// Only public lifecycle fields cross the H5 boundary.
-  Map<String, Object?> toBridgeMap() => {
-        'sessionId': context.sessionId,
-        'startedAt': context.startedAt.toUtc().toIso8601String(),
-        'acceptedAt': acceptedAt?.toUtc().toIso8601String(),
-        'endedAt': endedAt.toUtc().toIso8601String(),
-        'durationMs': duration?.inMilliseconds,
-        'reason': reason.name,
-        'releaseStatus': releaseStatus.name,
-        'errorCode': error?.code.name,
-      };
 }
 
 @immutable
@@ -411,31 +393,4 @@ class CallState {
   final CallQueueState? queue;
   final CallSummary? lastSummary;
   bool get hasWindow => sessionId != null;
-
-  /// v1 H5 state is intentionally independent of credentials and native view IDs.
-  Map<String, Object?> toBridgeMap() => {
-        'sessionId': sessionId,
-        'phase': phase.name,
-        'mode': windowMode.name,
-        'probe': probe,
-        'muted': media.muted,
-        'cameraEnabled': media.cameraEnabled,
-        'speaker': media.speaker,
-        'remoteUid': media.remoteUid,
-        'remoteVideo': media.remoteVideo,
-        'localWeak': media.localWeak,
-        'remoteWeak': media.remoteWeak,
-        'mediaReady': media.controlsReady,
-        'videoQuality': media.quality?.name,
-        'needsToken': needsToken,
-        'errorCode': error?.code.name,
-        'endReason': endReason?.name,
-        'connectionState': connectionState.name,
-        'businessState': businessState.name,
-        'acceptedAt': acceptedAt?.toUtc().toIso8601String(),
-        'systemCallRinging': systemCallRinging,
-        'queue': queue?.toBridgeMap(),
-        'lastSummary': lastSummary?.toBridgeMap(),
-        if (kDebugMode) 'diagnostic': diagnostic,
-      };
 }

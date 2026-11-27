@@ -64,7 +64,6 @@ public final class CustomerRtcPlugin: NSObject, FlutterPlugin, FlutterStreamHand
   private var localBound = false
   private var boundUid: UInt?
   private let videos = NSMapTable<NSNumber, NativeVideoView>(keyOptions: .strongMemory, valueOptions: .weakMemory)
-  private let webs = NSMapTable<NSNumber, NativeWebView>(keyOptions: .strongMemory, valueOptions: .weakMemory)
 
   public override convenience init() { self.init(requestPermission: CustomerRtcPlugin.requestMediaPermission) }
 
@@ -221,8 +220,7 @@ public final class CustomerRtcPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     let instance = CustomerRtcPlugin()
     registrar.addMethodCallDelegate(instance, channel: FlutterMethodChannel(name: "customer_rtc", binaryMessenger: registrar.messenger()))
     FlutterEventChannel(name: "customer_rtc/events", binaryMessenger: registrar.messenger()).setStreamHandler(instance)
-    registrar.register(NativeViewFactory(owner: instance, web: true), withId: "customer_rtc/web")
-    registrar.register(NativeViewFactory(owner: instance, web: false), withId: "customer_rtc/video")
+    registrar.register(NativeVideoFactory(owner: instance), withId: "customer_rtc/video")
     registrar.publish(instance)
   }
 
@@ -357,7 +355,6 @@ public final class CustomerRtcPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     presentation = [:]
     pendingBackgroundEvents.removeAll()
     interruptedSessionIds.removeAll()
-    for web in webs.objectEnumerator()?.allObjects as? [NativeWebView] ?? [] { web.dispose() }
     sink = nil
   }
 
@@ -416,16 +413,6 @@ public final class CustomerRtcPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     case "leave":
       guard let id = args["sessionId"] as? String, !id.isEmpty else { result(error("invalid_arguments", "sessionId required")); return }
       leave(id) { status in result(["releaseStatus": status]) }
-    case "webReply":
-      guard let id = args["viewId"] as? NSNumber, let json = args["json"] as? String,
-            let data = json.data(using: .utf8), data.count <= 65536,
-            let object = try? JSONSerialization.jsonObject(with: data), object is [String: Any] else {
-        result(error("invalid_arguments", "Expected a JSON object")); return
-      }
-      // Re-encode before interpolation to reject script fragments and normalize JSON.
-      let safe = try! JSONSerialization.data(withJSONObject: object, options: [.fragmentsAllowed])
-      webs.object(forKey: id)?.reply(String(data: safe, encoding: .utf8)!)
-      result(nil)
     case "setMuted", "setCameraEnabled", "switchCamera", "setSpeaker", "renewToken", "setVideoQuality", "rebindVideo":
       guard let id = args["sessionId"] as? String, gate.ticket?.sessionId == id, let engine = engine, !gate.cleaning else {
         result(error("no_session", "No matching active call")); return
@@ -646,7 +633,6 @@ public final class CustomerRtcPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     }
   }
 
-  func addWeb(_ view: NativeWebView, id: Int64) { webs.setObject(view, forKey: NSNumber(value: id)) }
   func addVideo(_ view: NativeVideoView, id: Int64) { videos.setObject(view, forKey: NSNumber(value: id)); bindVideos() }
   func removeVideo(_ id: Int64, role: String) {
     videos.removeObject(forKey: NSNumber(value: id))

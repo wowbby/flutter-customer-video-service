@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui' show AppLifecycleState;
 import 'package:customer_video_service/customer_video_service.dart';
 import 'package:flutter/services.dart';
@@ -485,30 +484,5 @@ void main() {
     final next = await controller.startCall();
     transport.emit('hostBackground', result.sessionId);
     expect(controller.state.sessionId, next.sessionId);
-  });
-
-  test('H5 request metadata belongs to the native document binding', () async {
-    CallRequest? request;
-    controller = VideoServiceController(
-        transport: transport,
-        credentialsProvider: (ctx) async {
-          request = ctx.request;
-          return settings;
-        });
-    final bridge = CustomerH5Bridge(controller: controller),
-        sent = <Map<String, Object?>>[];
-    final page = bridge.attach(
-        send: sent.add,
-        requestForCall: () => const CallRequest(businessId: 'trusted-order'));
-    await page.ready();
-    await page.receive(jsonEncode({
-      'version': 1,
-      'requestId': 'one',
-      'action': 'startRtc',
-      'params': {'businessId': 'untrusted-order'}
-    }));
-    expect(request!.businessId, 'trusted-order');
-    expect(jsonEncode(sent), isNot(contains('trusted-order')));
-    bridge.dispose();
   });
 }

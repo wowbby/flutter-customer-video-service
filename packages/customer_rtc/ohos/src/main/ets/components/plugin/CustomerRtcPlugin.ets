@@ -6,7 +6,7 @@ import { audio } from '@kit.AudioKit';
 import { HostDelegate, HostSnapshot, CustomerRtcHost } from './HostPresentation';
 import { CameraCapturerConfiguration, CaptureFormat, VideoEncoderConfiguration, VideoDimensions, ChannelMediaOptions, Constants, IRtcEngineEventHandler, LogConfig, RtcEngine,
   RtcEngineConfig, VideoCanvas } from '@shengwang/rtc-full';
-import { CustomerWebFactory, CustomerVideoFactory, CustomerWebView, CustomerVideoView, ViewOwner } from './CustomerViews';
+import { CustomerVideoFactory, CustomerVideoView, VideoViewOwner } from './CustomerViews';
 import { DEBUG } from '../../../../../BuildProfile';
 import { CallWindowBars } from './CallWindowBars';
 import { SystemCallMonitor } from './SystemCallMonitor';
@@ -18,7 +18,7 @@ class RtcOperationError extends Error {
 }
 
 /** One native engine per active session. Views never own the engine or leave the channel. */
-export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandler, StreamHandler, AbilityAware, ViewOwner, HostDelegate {
+export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandler, StreamHandler, AbilityAware, VideoViewOwner, HostDelegate {
   // Agora's destroy is process-global and asynchronous. Keep the lease until
   // it fulfills, even when Flutter has already constructed the next plugin.
   private static owner: CustomerRtcPlugin | null = null;
@@ -64,7 +64,6 @@ export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandl
   private lastReleasedId: string | null = null;
   private lastReleaseStatus: string = 'released';
   private cleanupFailed: boolean = false;
-  private webs: Map<number, CustomerWebView> = new Map();
   private videos: Map<number, CustomerVideoView> = new Map();
 
   private callBars: CallWindowBars = new CallWindowBars();
@@ -76,7 +75,6 @@ export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandl
     this.channel.setMethodCallHandler(this);
     this.events = new EventChannel(binding.getBinaryMessenger(), 'customer_rtc/events');
     this.events.setStreamHandler(this);
-    binding.getPlatformViewRegistry().registerViewFactory('customer_rtc/web', new CustomerWebFactory(this));
     binding.getPlatformViewRegistry().registerViewFactory('customer_rtc/video', new CustomerVideoFactory(this));
   }
   onAttachedToAbility(binding: AbilityPluginBinding): void {
@@ -119,8 +117,6 @@ export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandl
     this.phone.stop();
     this.host.disconnect(this);
     this.stopSession().catch(() => {});
-    this.webs.forEach((view) => view.dispose());
-    this.webs.clear();
     this.videos.clear();
   }
   onListen(args: Any, events: EventSink): void {
@@ -441,16 +437,6 @@ export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandl
       this.stopSession().then((status) => result.success(this.releaseResult(status))).catch(() => result.error('cleanup_failed', 'RTC cleanup failed.', this.errorDetails('leave', 'restartRequired')));
       return;
     }
-    if (call.method === 'webReply') {
-      try {
-        const json = call.argument('json') as string;
-        if (typeof json !== 'string') { throw new Error('invalid_json'); }
-        const id = call.argument('viewId') as number;
-        this.webs.get(id)?.reply(json);
-        result.success(null);
-      } catch (_) { result.error('invalid_arguments', 'Expected a JSON object.', null); }
-      return;
-    }
     const methods = ['rebindVideo', 'setVideoQuality', 'setMuted', 'setCameraEnabled', 'switchCamera', 'setSpeaker', 'renewToken'];
     if (methods.indexOf(call.method) < 0) { result.notImplemented(); return; }
     const id = call.argument('sessionId') as string;
@@ -672,8 +658,6 @@ export default class CustomerRtcPlugin implements FlutterPlugin, MethodCallHandl
     policy.stop(() => engine.leaveChannel());
     return policy.destroy(() => RtcEngine.destroy());
   }
-  addWeb(view: CustomerWebView): void { this.webs.set(view.id, view); }
-  removeWeb(id: number): void { this.webs.delete(id); }
   addVideo(view: CustomerVideoView): void { this.videos.set(view.id, view); }
   videoReady(view: CustomerVideoView): void {
     if (view.probe || view.disposed) { return; }

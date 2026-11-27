@@ -9,7 +9,7 @@ import 'call_failure.dart';
 export 'call_failure.dart' show safeErrorCode;
 import '../models.dart';
 
-/// App-owned session. Native views and H5 routes do not own this lifecycle.
+/// App-owned session. Native views and business routes do not own this lifecycle.
 class CallManager extends SessionNotifier {
   CallManager(this.transport,
       {this.joinTimeout = const Duration(seconds: 45),
@@ -234,29 +234,6 @@ class CallManager extends SessionNotifier {
   bool get needsToken => _needsToken;
   bool get controlBusy => _controlBusy;
   String? get errorCode => _failure?.code.name;
-
-  // Deliberately excludes App ID, channel, Token and raw native errors.
-  Map<String, Object?> get snapshot => {
-        'sessionId': _sessionId,
-        'phase': _phase.name,
-        'mode': _mini ? 'mini' : 'full',
-        'probe': _probe,
-        'muted': _muted,
-        'cameraEnabled': _cameraEnabled,
-        'speaker': _speaker,
-        'remoteUid': _remoteUid,
-        'remoteVideo': _remoteVideo,
-        'needsToken': _needsToken,
-        'errorCode': errorCode,
-        'connectionState': connectionState.name,
-        'businessState': businessState.name,
-        'acceptedAt': acceptedAt?.toIso8601String(),
-        'systemCallRinging': systemCallRinging,
-        'queue': queue?.toBridgeMap(),
-        'lastSummary': lastSummary?.toBridgeMap(),
-        'endReason': endReason?.name,
-        if (kDebugMode) 'diagnostic': _diagnostic,
-      };
 
   Future<CallStartResult> start(
       {required bool probe,

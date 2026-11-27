@@ -1,6 +1,6 @@
 # customer_rtc
 
-Android Kotlin / iOS Swift / HarmonyOS ArkTS 自封装声网原生 SDK、原生视频视图与本地 HTML WebView。视频帧不经 Dart 通道传输，不依赖 agora_rtc_engine。
+Android Kotlin / iOS Swift / HarmonyOS ArkTS 自封装声网原生 SDK、原生视频视图、音视频设备及原生通话窗口。视频帧不经 Dart 通道传输，不依赖 agora_rtc_engine。
 
 | 平台 | 固定依赖 |
 | --- | --- |
@@ -8,7 +8,7 @@ Android Kotlin / iOS Swift / HarmonyOS ArkTS 自封装声网原生 SDK、原生�
 | iOS | AgoraRtcEngine_iOS 4.5.3，AgoraInfra 1.3.7 |
 | HarmonyOS | @shengwang/rtc-full 4.4.2，HAR SHA-256 由包内 ohos/tool/setup_sdk.sh 校验 |
 
-普通宿主依赖上层 [customer_video_service](../customer_video_service/README.md)，由其管理会话、窗口和协议。NativeRtcClient/RtcTransport 是底层适配接口；NativeWebClient 仅处理 typed Web 事件和定向回复，共用同一原生 EventChannel 订阅。原生视图销毁只解绑视频，不拥有通话生命周期。仅支持一个活动 FlutterEngine / 一个活动会话。
+普通宿主依赖上层 [customer_video_service](../customer_video_service/README.md)，由其管理会话和窗口。NativeRtcClient/RtcTransport 是底层 RTC 适配接口。原生视图销毁只解绑视频，不拥有通话生命周期。仅支持一个活动 FlutterEngine / 一个活动会话。
 
 0.3.0 增加独立原生页面的窗口挂载、前后台通知和媒体操作。各端接入根容器、返回键、后台事件及卸载的方式见 [Android](android/HOST.md)、[iOS](ios/HOST.md)、[HarmonyOS](ohos/HOST.md)。启用宿主模式时，Flutter 会话控制器将同一通话的安全快照发给当前原生窗口。独立使用鸿蒙包时先运行 `./ohos/tool/setup_sdk.sh` 取得固定校验值的 HAR。
 
@@ -17,8 +17,8 @@ Android Kotlin / iOS Swift / HarmonyOS ArkTS 自封装声网原生 SDK、原生�
 使用根工程固定 Flutter OHOS SDK。包含 OHOS 平台类型，标准 Flutter SDK 兼容性未验证。原生通道契约见 [native-plugin.md](../../docs/contracts/native-plugin.md)。本地权限、签名配置及构建入口见根 README；不将凭据或证书放在插件。
 
 ```sh
-# 仓库根
-./tool/flutterw --plugin pub get
-./tool/flutterw --plugin analyze
-./tool/flutterw --plugin test
+# packages/customer_rtc 目录下，使用项目约定的 Flutter OHOS SDK
+flutter pub get
+flutter analyze
+flutter test
 ```

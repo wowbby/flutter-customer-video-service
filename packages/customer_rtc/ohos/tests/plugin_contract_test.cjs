@@ -145,18 +145,6 @@ const deadline = setTimeout(() => { console.error('RTC plugin test timed out'); 
   assert.equal(barCalls.at(-1), true);
   await bars.show();
 
-  const {trustedHtml} = load('TrustedHtml');
-  for (const [prefix, body] of [
-    ['<!DOCTYPE html>', '<body>implicit head</body>'],
-    ['<!-- prologue --><!doctype html><html lang="zh">', '<body>omitted head</body>'],
-    ['<!DOCTYPE html><html><head data-v=">">', '<script>ready()</script></head>'],
-    ['', '<script>const text = "<head>"</script>']
-  ]) {
-    const secured = trustedHtml(prefix + body);
-    assert.ok(secured.startsWith(prefix + '<meta http-equiv="Content-Security-Policy"'));
-    assert.ok(secured.endsWith(body));
-  }
-
   const flutterOnly = new Plugin();
   const modes = [];
   const unsubscribe = flutterOnly.host.observeFullscreen(full => modes.push(full));

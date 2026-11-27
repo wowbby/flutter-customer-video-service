@@ -71,8 +71,8 @@ void main() {
     token.complete('private-new-token');
     await Future.wait([first, second]);
     expect(native.calls.where((c) => c.$1 == 'renewToken'), isEmpty);
-    expect(
-        controller.state.toBridgeMap().toString(), isNot(contains('private')));
+    expect('${controller.state.error} ${controller.state.diagnostic}',
+        isNot(contains('private')));
     await controller.hangup();
   });
   test('shutdown reports cleanup failure and blocks further starts until retry',
@@ -155,8 +155,8 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(attempts, 1);
     expect(controller.state.error?.code, CallErrorCode.tokenRefreshFailed);
-    expect(
-        controller.state.toBridgeMap().toString(), isNot(contains('private')));
+    expect('${controller.state.error} ${controller.state.diagnostic}',
+        isNot(contains('private')));
     native.emit('tokenRequired', controller.state.sessionId);
     await Future<void>.delayed(Duration.zero);
     expect(attempts, 1);

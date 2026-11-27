@@ -1,7 +1,7 @@
 {
   "name": "customer_rtc",
-  "version": "0.3.0",
-  "description": "Native Agora RTC and bundled WebView adapter.",
+  "version": "0.4.0",
+  "description": "Native Agora RTC and call presentation for HarmonyOS.",
   "main": "index.ets",
   "author": "",
   "license": "Apache-2.0",

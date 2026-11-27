@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:customer_video_service/customer_video_service.dart';
 import 'package:customer_rtc/customer_rtc.dart';
 import 'package:flutter/services.dart';
@@ -59,9 +58,11 @@ void main() {
     };
     await expectLater(manager.start(probe: false, settings: settings),
         throwsA(isA<CallException>()));
-    expect(manager.snapshot['diagnostic'], 'RTC join code=-7');
-    expect(jsonEncode(manager.snapshot), isNot(contains('private-token')));
-    expect(jsonEncode(manager.snapshot), isNot(contains(settings.appId)));
+    expect(manager.diagnostic, 'RTC join code=-7');
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains('private-token')));
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains(settings.appId)));
     expect(manager.phase, CallPhase.idle);
   });
 
@@ -111,8 +112,10 @@ void main() {
     manager.minimize();
     expect(native.calls.where((c) => c.$1 == 'join').length, 1);
     expect(manager.sessionId, session);
-    expect(jsonEncode(manager.snapshot), isNot(contains('private-token')));
-    expect(jsonEncode(manager.snapshot), isNot(contains(settings.appId)));
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains('private-token')));
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains(settings.appId)));
   });
 
   test(
@@ -206,7 +209,8 @@ void main() {
     };
     await expectLater(manager.setMuted(true), throwsA(isA<CallException>()));
     expect(manager.muted, isFalse);
-    expect(jsonEncode(manager.snapshot), isNot(contains('private-token')));
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains('private-token')));
   });
 
   test('missing credentials rejected before opening window or invoking native',
@@ -231,7 +235,8 @@ void main() {
     expect(manager.hasWindow, isFalse);
     expect(manager.errorCode, 'permissionDenied');
     expect(native.calls.last.$1, 'leave');
-    expect(jsonEncode(manager.snapshot), isNot(contains('private-token')));
+    expect('${manager.diagnostic} ${manager.failure}',
+        isNot(contains('private-token')));
   });
 
   test('only selected peer can advance or end media state', () async {
